@@ -16,17 +16,19 @@ public class Utils {
         }
     }
 
+    public static readonly float PHI = 1.61803398f;
+
     public static float Optimize(float x1, float x2, int iters, Func<float, float> cost) {
-        float y1, y2;
-        for (int i = 0; i < iters; i++) {
-            y1 = cost(x1);
-            y2 = cost(x2);
-            float xNext = (x1 + x2) / 2;
-            if (y1 < y2) {
-                x2 = xNext;
+        float c = x2 - (x2 - x1) / PHI;
+        float d = x1 + (x2 - x1) / PHI;
+        for (int i=0; i < iters; i++) {
+            if (cost(c) < cost(d)) {
+                x2 = d;
             } else {
-                x1 = xNext;
+                x1 = c;
             }
+            c = x2 - (x2 - x1) / PHI;
+            d = x1 + (x2 - x1) / PHI;
         }
         return (x1 + x2) / 2;
     }

@@ -28,6 +28,15 @@ public class AerodynamicWing : MonoBehaviour {
         }
     }
 
+    public Vector3 LocalLiftAtAngle(float a) {
+        float angleClamped = Mathf.Clamp(a, -flapLimit, flapLimit);
+        return Quaternion.AngleAxis(angleClamped, flapAxis) * liftAxis;
+    }
+
+    public Vector3 GlobalLiftAtAngle(float a) {
+        return transform.rotation * LocalLiftAtAngle(a);
+    }
+
     private void Start() {
         //prevPos = transform.position;
         rb = GetComponent<Rigidbody>();
@@ -55,8 +64,7 @@ public class AerodynamicWing : MonoBehaviour {
         rb.AddForceAtPosition(finalGlobalForce, GlobalLiftCenter);
 
         // Visual debug shit
-        Debug.DrawLine(GlobalLiftCenter, GlobalLiftCenter + transform.rotation * v / 10);
-        Debug.DrawLine(GlobalLiftCenter, GlobalLiftCenter + transform.rotation * liftLocalFinal / 10);
+        //Debug.DrawLine(GlobalLiftCenter, GlobalLiftCenter + transform.rotation * liftLocalFinal / 10);
         //Debug.DrawLine(GlobalLiftCenter, GlobalLiftCenter + GlobalLiftNormal);
         if (canRotate) {
             Quaternion flapRotation = Quaternion.AngleAxis(angleClamped, flapAxis);

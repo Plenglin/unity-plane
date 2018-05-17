@@ -9,7 +9,9 @@ public class AirplaneController : MonoBehaviour {
     public Transform airplaneRoot;
     public List<AerodynamicWing> wings;
     public List<VectoredEngine> engines;
-    
+    public Vector3 forward;
+
+    private Quaternion forwardNormalizingRotation;    
     private Vector3 localCoM;
     private Rigidbody rb;
     private Color[] debugColors = {
@@ -30,6 +32,7 @@ public class AirplaneController : MonoBehaviour {
         /*wings.ForEach(w => {
             w.rb = this.GetComponent<Rigidbody>();
         });*/
+        forwardNormalizingRotation = Quaternion.FromToRotation(forward, Vector3.forward);
     }
 	
 	void FixedUpdate() {
@@ -55,30 +58,50 @@ public class AirplaneController : MonoBehaviour {
         if (Input.GetKey(KeyCode.E)) {
             rSign = 1;
         }
-        Vector3 wantedTorque = Vector3.right * pSign + Vector3.forward * ySign + Vector3.up * rSign;
+        Vector3 wantedTorque = forwardNormalizingRotation * (Vector3.right * pSign + Vector3.forward * ySign + Vector3.up * rSign).normalized;
+        Vector3 globalWantedTorque = transform.rotation * wantedTorque;
+        Vector3 globalCoM = transform.position + airplaneRoot.rotation * localCoM;
 
-        if (stabilize) {
-            engines.ForEach(e => {
+        engines.ForEach(e => {
                 
-            });
-            for (int i=0; i < wings.Count; i++) {
+        });
+        if (wantedTorque.magnitude > 0.2) {
+            for (int i = 0; i < wings.Count; i++) {
                 AerodynamicWing w = wings[i];
                 if (w != null && w.canRotate) {
                     Quaternion invRot = Quaternion.Inverse(transform.rotation);
-                    Vector3 rRelativeToTransform = w.GlobalLiftCenter - (transform.position + transform.rotation * localCoM);
-                    Vector3 predictedTorque = Vector3.Cross(rRelativeToTransform, w.GlobalLiftNormal);
-                    Vector3 relativeTorque = invRot * predictedTorque;
-                    float pitch = 10 * Vector3.Dot(relativeTorque, Vector3.right) * pSign;
-                    float roll = 10 * Vector3.Dot(relativeTorque, Vector3.forward) * ySign;
-                    float yaw = 10 * Vector3.Dot(relativeTorque, Vector3.up) * rSign;
-                    float angle = (pitch + roll + yaw);
-                    w.flapAngle = angle;
-                    Debug.DrawLine(transform.position, transform.position + predictedTorque, debugColors[i]);
+                    Vector3 r = w.GlobalLiftCenter - globalCoM;
+
+                    // find the optimal angle to set the wing to (the closest to the wanted torque)
+                    //int i = 0;
+                    float optimalAngle = Utils.Optimize(-w.flapLimit, w.flapLimit, 10, a => {
+                        Vector3 torque = Vector3.Cross(r, w.GlobalLiftAtAngle(a));
+                        return -Vector3.Dot(torque, globalWantedTorque); // Cost = negative projection of resultant torque on wanted torque
+                    });
+                    Vector3 force = w.GlobalLiftAtAngle(optimalAngle);
+                    Vector3 t2 = Vector3.Cross(r, w.GlobalLiftAtAngle(optimalAngle));
+                    //Debug.DrawLine(w.transform.position, w.transform.position + force, Color.cyan);
+                    Debug.DrawLine(w.transform.position, w.transform.position + t2, Color.yellow);
+                    float deltaAngle = Vector3.Angle(globalWantedTorque, w.GlobalLiftAtAngle(optimalAngle));
+                    //Debug.Log(Vector3.Dot(torque, globalWantedTorque));
+                    if (75 < deltaAngle && deltaAngle < 105) {
+                        w.flapAngle = 0;
+                    } else {
+                        w.flapAngle = optimalAngle;
+                    }
+                    //Debug.DrawLine(transform.position, transform.position + predictedTorque, debugColors[i]);
                 }
             }
-
-            Debug.DrawLine(transform.position, transform.position + rb.velocity); 
+        } else {
+            for (int i = 0; i < wings.Count; i++) {
+                AerodynamicWing w = wings[i];
+                if (w != null && w.canRotate) {
+                    w.flapAngle = 0;
+                }
+            }
         }
+
+        Debug.DrawLine(globalCoM, globalCoM + globalWantedTorque, Color.red);         
 
     }
 
