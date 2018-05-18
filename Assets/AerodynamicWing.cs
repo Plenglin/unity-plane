@@ -12,6 +12,8 @@ public class AerodynamicWing : MonoBehaviour {
     public GameObject render;
     public float drag;
 
+    public float yawInfluence, pitchInfluence, rollInfluence;
+
     //private Vector3 prevPos;
 
     [NonSerialized]

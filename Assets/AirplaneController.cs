@@ -69,27 +69,7 @@ public class AirplaneController : MonoBehaviour {
             for (int i = 0; i < wings.Count; i++) {
                 AerodynamicWing w = wings[i];
                 if (w != null && w.canRotate) {
-                    Quaternion invRot = Quaternion.Inverse(transform.rotation);
-                    Vector3 r = w.GlobalLiftCenter - globalCoM;
-
-                    // find the optimal angle to set the wing to (the closest to the wanted torque)
-                    //int i = 0;
-                    float optimalAngle = Utils.Optimize(-w.flapLimit, w.flapLimit, 10, a => {
-                        Vector3 torque = Vector3.Cross(r, w.GlobalLiftAtAngle(a));
-                        return -Vector3.Dot(torque, globalWantedTorque); // Cost = negative projection of resultant torque on wanted torque
-                    });
-                    Vector3 force = w.GlobalLiftAtAngle(optimalAngle);
-                    Vector3 t2 = Vector3.Cross(r, w.GlobalLiftAtAngle(optimalAngle));
-                    //Debug.DrawLine(w.transform.position, w.transform.position + force, Color.cyan);
-                    Debug.DrawLine(w.transform.position, w.transform.position + t2, Color.yellow);
-                    float deltaAngle = Vector3.Angle(globalWantedTorque, w.GlobalLiftAtAngle(optimalAngle));
-                    //Debug.Log(Vector3.Dot(torque, globalWantedTorque));
-                    if (75 < deltaAngle && deltaAngle < 105) {
-                        w.flapAngle = 0;
-                    } else {
-                        w.flapAngle = optimalAngle;
-                    }
-                    //Debug.DrawLine(transform.position, transform.position + predictedTorque, debugColors[i]);
+                    w.flapAngle = pSign * w.pitchInfluence + rSign * w.rollInfluence + ySign * w.yawInfluence;
                 }
             }
         } else {
