@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class FlightInstruments : MonoBehaviour {
 
-    public Text airspeed, altitude, vsi, groundspeed;
+    public Text airspeed, altitude, vsi, groundspeed, elevation;
 
     private Rigidbody rb;
 
@@ -14,15 +14,18 @@ public class FlightInstruments : MonoBehaviour {
     }
 
     void Update () {
-        Vector3 v = rb.velocity;
+        Vector3 v = rb.velocity * 10;
         float vs = Vector3.Dot(v, Vector3.up);
-        Vector3 gs = v - vs * v;
+        Vector3 gs = v - vs * Vector3.up;
         RaycastHit hit;
         Physics.Raycast(transform.position, Vector3.down, out hit);
-        float alt = hit.distance;
-        airspeed.text = string.Format("{}m/s", v.magnitude);
-        vsi.text = string.Format("{}m/s", vs);
-        groundspeed.text = string.Format("{}m/s", gs.magnitude);
-        altitude.text = string.Format("{}m", alt);
+        float alt = hit.distance * 10;
+        float elev = transform.position.y * 10;
+
+        airspeed.text = string.Format("{0:0.0}m/s", v.magnitude);
+        vsi.text = string.Format("{0:0.0}m/s", vs);
+        groundspeed.text = string.Format("{0:0.0}m/s", gs.magnitude);
+        altitude.text = string.Format("{0:0.0}m", alt);
+        elevation.text = string.Format("{0:0.0}m", elev);
     }
 }
