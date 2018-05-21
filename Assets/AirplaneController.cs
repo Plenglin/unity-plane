@@ -28,7 +28,7 @@ public class AirplaneController : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        UpdateCenterOfMass();
+        UpdateChildren();
         rb = GetComponent<Rigidbody>();
         /*wings.ForEach(w => {
             w.rb = this.GetComponent<Rigidbody>();
@@ -99,7 +99,8 @@ public class AirplaneController : MonoBehaviour {
 
     }
 
-    public void UpdateCenterOfMass() {
+    public void UpdateChildren() {
+        wings.Clear();
         Vector3 newCoM = new Vector3(0, 0, 0);
         float totalMass = 0;
         foreach (Transform child in Utils.AllChildrenOf(airplaneRoot)) {
@@ -107,6 +108,10 @@ public class AirplaneController : MonoBehaviour {
             if (crb != null) {
                 newCoM += crb.mass * crb.worldCenterOfMass;
                 totalMass += crb.mass;
+            }
+            AerodynamicWing cw = child.GetComponent<AerodynamicWing>();
+            if (cw != null) {
+                wings.Add(cw);
             }
         }
         localCoM = newCoM / totalMass - transform.position;
