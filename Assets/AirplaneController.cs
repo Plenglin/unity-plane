@@ -80,10 +80,7 @@ public class AirplaneController : MonoBehaviour {
         Vector3 wantedTorque = forwardNormalizingRotation * (Vector3.right * pitch + Vector3.forward * yaw + Vector3.up * roll).normalized;
         Vector3 globalWantedTorque = transform.rotation * wantedTorque;
         Vector3 globalCoM = transform.position + airplaneRoot.rotation * localCoM;
-
-        engines.ForEach(e => {
-                
-        });
+        
         if (wantedTorque.magnitude > 0.2) {
             for (int i = 0; i < wings.Count; i++) {
                 AerodynamicWing w = wings[i];
@@ -99,8 +96,6 @@ public class AirplaneController : MonoBehaviour {
                 }
             }
         }
-
-        Debug.DrawLine(globalCoM, globalCoM + globalWantedTorque, Color.red);         
 
     }
 
