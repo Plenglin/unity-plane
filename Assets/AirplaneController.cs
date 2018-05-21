@@ -10,6 +10,7 @@ public class AirplaneController : MonoBehaviour {
     public List<AerodynamicWing> wings;
     public List<VectoredEngine> engines;
     public Vector3 forward;
+    public float yawResponse, pitchResponse, rollResponse;
 
     private Quaternion forwardNormalizingRotation;    
     private Vector3 localCoM;
@@ -37,28 +38,46 @@ public class AirplaneController : MonoBehaviour {
 	
 	void FixedUpdate() {
 
-        float ySign = 0;
-        float pSign = 0;
-        float rSign = 0;
+        bool shouldStabilize = true;
+        float yaw = 0;
+        float pitch = 0;
+        float roll = 0;
+
+        // User control
         if (Input.GetKey(KeyCode.S)) {
-            pSign = 1;
+            pitch += 1;
+            shouldStabilize = false;
         }
         if (Input.GetKey(KeyCode.W)) {
-            pSign = -1;
+            pitch += -1;
+            shouldStabilize = false;
         }
         if (Input.GetKey(KeyCode.A)) {
-            ySign = 1;
+            yaw += 1;
+            shouldStabilize = false;
         }
         if (Input.GetKey(KeyCode.D)) {
-            ySign = -1;
+            yaw += -1;
+            shouldStabilize = false;
         }
         if (Input.GetKey(KeyCode.Q)) {
-            rSign = -1;
+            roll += -1;
+            shouldStabilize = false;
         }
         if (Input.GetKey(KeyCode.E)) {
-            rSign = 1;
+            roll += 1;
+            shouldStabilize = false;
         }
-        Vector3 wantedTorque = forwardNormalizingRotation * (Vector3.right * pSign + Vector3.forward * ySign + Vector3.up * rSign).normalized;
+
+        // Stabilization control
+        if (stabilize && shouldStabilize) {
+            Vector3 w = Quaternion.Inverse(rb.rotation) * rb.angularVelocity;
+            yaw += yawResponse * Vector3.Dot(w, Vector3.up);
+            pitch += pitchResponse * Vector3.Dot(w, Vector3.right);
+            roll += rollResponse * Vector3.Dot(w, Vector3.forward);
+        }
+
+        Vector3 wantedTorque = forwardNormalizingRotation * (Vector3.right * pitch + Vector3.forward * yaw + Vector3.up * roll).normalized;
         Vector3 globalWantedTorque = transform.rotation * wantedTorque;
         Vector3 globalCoM = transform.position + airplaneRoot.rotation * localCoM;
 
@@ -69,7 +88,7 @@ public class AirplaneController : MonoBehaviour {
             for (int i = 0; i < wings.Count; i++) {
                 AerodynamicWing w = wings[i];
                 if (w != null && w.canRotate) {
-                    w.flapAngle = pSign * w.pitchInfluence + rSign * w.rollInfluence + ySign * w.yawInfluence;
+                    w.flapAngle = pitch * w.pitchInfluence + roll * w.rollInfluence + yaw * w.yawInfluence;
                 }
             }
         } else {
