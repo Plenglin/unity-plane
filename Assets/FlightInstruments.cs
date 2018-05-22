@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class FlightInstruments : MonoBehaviour {
 
-    public Text airspeed, altitude, vsi, groundspeed, elevation, sas;
+    public Text airspeed, altitude, vsi, groundspeed, elevation, sas, engine;
 
     private AirplaneController airplane;
     private Rigidbody rb;
@@ -30,5 +30,6 @@ public class FlightInstruments : MonoBehaviour {
         altitude.text = string.Format("{0:0.0}m", alt);
         elevation.text = string.Format("{0:0.0}m", elev);
         sas.text = "SAS: " + (airplane.stabilize ? "ON" : "OFF");
+        engine.text = "ENGINE: " + ((int) (100 * airplane.enginePower)) + "%";
     }
 }

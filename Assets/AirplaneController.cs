@@ -7,11 +7,12 @@ public class AirplaneController : MonoBehaviour {
     public bool stabilize;
 
     public Transform airplaneRoot;
-    public List<AerodynamicWing> wings;
-    public List<VectoredEngine> engines;
     public Vector3 forward;
     public float yawResponse, pitchResponse, rollResponse;
+    public float enginePower;
 
+    private List<AerodynamicWing> wings = new List<AerodynamicWing>();
+    private List<VectoredEngine> engines = new List<VectoredEngine>();
     private Quaternion forwardNormalizingRotation;    
     private Vector3 localCoM;
     private Rigidbody rb;
@@ -77,25 +78,17 @@ public class AirplaneController : MonoBehaviour {
             roll += rollResponse * Vector3.Dot(w, Vector3.forward);
         }
 
-        Vector3 wantedTorque = forwardNormalizingRotation * (Vector3.right * pitch + Vector3.forward * yaw + Vector3.up * roll).normalized;
-        Vector3 globalWantedTorque = transform.rotation * wantedTorque;
-        Vector3 globalCoM = transform.position + airplaneRoot.rotation * localCoM;
-        
-        if (wantedTorque.magnitude > 0.2) {
-            for (int i = 0; i < wings.Count; i++) {
-                AerodynamicWing w = wings[i];
-                if (w != null && w.canRotate) {
-                    w.flapAngle = pitch * w.pitchInfluence + roll * w.rollInfluence + yaw * w.yawInfluence;
-                }
-            }
-        } else {
-            for (int i = 0; i < wings.Count; i++) {
-                AerodynamicWing w = wings[i];
-                if (w != null && w.canRotate) {
-                    w.flapAngle = 0;
-                }
+        for (int i = 0; i < wings.Count; i++) {
+            AerodynamicWing w = wings[i];
+            if (w != null && w.canRotate) {
+                w.flapAngle = pitch * w.pitchInfluence + roll * w.rollInfluence + yaw * w.yawInfluence;
             }
         }
+
+        // Engines
+        engines.ForEach(e => {
+            e.power = enginePower;
+        });
 
     }
 
@@ -112,6 +105,10 @@ public class AirplaneController : MonoBehaviour {
             AerodynamicWing cw = child.GetComponent<AerodynamicWing>();
             if (cw != null) {
                 wings.Add(cw);
+            }
+            VectoredEngine ce = child.GetComponent<VectoredEngine>();
+            if (ce != null) {
+                engines.Add(ce);
             }
         }
         localCoM = newCoM / totalMass - transform.position;
