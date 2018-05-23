@@ -22,8 +22,7 @@ namespace DroneCombat.UI {
             float vs = Vector3.Dot(v, Vector3.up);
             Vector3 gs = v - vs * Vector3.up;
             RaycastHit hit;
-            Physics.Raycast(transform.position, Vector3.down, out hit);
-            float alt = hit.distance * 10;
+            float alt = Physics.Raycast(transform.position, Vector3.down, out hit) ? (hit.distance * 10) : 0;
             float elev = transform.position.y * 10;
 
             airspeed.text = string.Format("{0:0.0}m/s", v.magnitude);
