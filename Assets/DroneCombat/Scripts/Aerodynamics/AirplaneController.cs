@@ -18,16 +18,6 @@ namespace DroneCombat.Aerodynamics {
         private Quaternion forwardNormalizingRotation;
         private Vector3 localCoM;
         private Rigidbody rb;
-        private Color[] debugColors = {
-        Color.black,
-        Color.blue,
-        Color.red,
-        Color.cyan,
-        Color.green,
-        Color.grey,
-        Color.magenta,
-        Color.yellow
-    };
 
         // Use this for initialization
         void Start() {
