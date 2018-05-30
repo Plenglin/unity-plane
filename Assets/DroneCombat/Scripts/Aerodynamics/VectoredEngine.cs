@@ -14,10 +14,10 @@ namespace DroneCombat.Aerodynamics {
         public float theta;
         public float phi;
 
-        private ParticleSystem ps;
+        public ParticleSystem ps;
 
         private void Start() {
-            ps = GetComponent<ParticleSystem>();
+            //ps = GetComponent<ParticleSystem>();
         }
 
         private void FixedUpdate() {

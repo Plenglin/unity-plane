@@ -11,10 +11,10 @@ namespace DroneCombat.Aerodynamics {
         public float flapLimit;
         public float flapAngle;
         public bool canRotate;
-        public GameObject render;
         public float drag;
 
         public float yawInfluence, pitchInfluence, rollInfluence;
+        private GameObject render = null;
 
         //private Vector3 prevPos;
 
@@ -44,6 +44,9 @@ namespace DroneCombat.Aerodynamics {
         private void Start() {
             //prevPos = transform.position;
             rb = GetComponent<Rigidbody>();
+            if (transform.childCount > 0) {
+                render = transform.GetChild(0).gameObject;
+            }
         }
 
         private void FixedUpdate() {
@@ -72,7 +75,9 @@ namespace DroneCombat.Aerodynamics {
             //Debug.DrawLine(GlobalLiftCenter, GlobalLiftCenter + GlobalLiftNormal);
             if (canRotate) {
                 Quaternion flapRotation = Quaternion.AngleAxis(angleClamped, flapAxis);
-                render.transform.rotation = transform.rotation * flapRotation;
+                if (render != null) {
+                    render.transform.rotation = transform.rotation * flapRotation;
+                }
             }
             //prevPos = transform.position;
         }
